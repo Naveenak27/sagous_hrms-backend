@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import runMigration from './database/migrate.js';
+import startLeaveBalanceCronJob from './jobs/leaveBalanceCron.js';
+import teamRoutes from './routes/teamRoutes.js';
+import mysql from 'mysql2';
+
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -14,10 +18,119 @@ import holidayRoutes from './routes/holidays.js';
 import calendarRoutes from './routes/calendar.js';
 import attendanceRoutes from './routes/attendance.js'
 import syncRoutes from './routes/sync.js';
+import announcementRoutes from './routes/announcements.js'
+
+import logsRoutes from './routes/logs.js';
+import { initializeScheduledJobs } from './jobs/emailloginJobs.js';
+
+
 
 dotenv.config();
 
 const app = express();
+
+startLeaveBalanceCronJob();
+
+
+// Initialize scheduled jobs
+initializeScheduledJobs();
+console.log('🤖 Cron jobs started successfully\n');
+
+// Temporary route to fetch all attendance logs from BIO database
+app.get('/api/bio/attendance-logs', async (req, res) => {
+  try {
+    const connection = mysql.createConnection({
+      host: process.env.BIO_DB_HOST,
+      port: process.env.BIO_DB_PORT,
+      user: process.env.BIO_DB_USERNAME,
+      password: process.env.BIO_DB_PASSWORD,
+      database: process.env.BIO_DB_DATABASE
+    });
+
+    connection.connect((err) => {
+      if (err) {
+        return res.status(500).json({ 
+          error: 'Database connection failed', 
+          details: err.message 
+        });
+      }
+
+      connection.query('SELECT * FROM attendance_logs', (error, results) => {
+        if (error) {
+          connection.end();
+          return res.status(500).json({ 
+            error: 'Query failed', 
+            details: error.message 
+          });
+        }
+
+        connection.end();
+        res.json({ 
+          success: true, 
+          count: results.length,
+          data: results
+        });
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: error.message 
+    });
+  }
+});
+
+
+
+
+// Temporary route to list all tables in BIO database
+app.get('/api/bio/tables', async (req, res) => {
+  try {
+    const connection = mysql.createConnection({
+      host: process.env.BIO_DB_HOST,
+      port: process.env.BIO_DB_PORT,
+      user: process.env.BIO_DB_USERNAME,
+      password: process.env.BIO_DB_PASSWORD,
+      database: process.env.BIO_DB_DATABASE
+    });
+
+    connection.connect((err) => {
+      if (err) {
+        return res.status(500).json({ 
+          error: 'Database connection failed', 
+          details: err.message 
+        });
+      }
+
+      connection.query('SHOW TABLES', (error, results) => {
+        if (error) {
+          connection.end();
+          return res.status(500).json({ 
+            error: 'Query failed', 
+            details: error.message 
+          });
+        }
+
+        const tables = results.map(row => Object.values(row)[0]);
+        
+        connection.end();
+        res.json({ 
+          success: true, 
+          database: process.env.BIO_DB_DATABASE,
+          tables: tables,
+          count: tables.length 
+        });
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: error.message 
+    });
+  }
+});
+
+
 
 // CORS Configuration
 app.use(cors({
@@ -40,6 +153,9 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/api/teams', teamRoutes);
+app.use('/api/', permissionRoutes);
+
 app.use('/api/sync', syncRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -50,6 +166,13 @@ app.use('/api/leave-types', leaveTypeRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/announcements', announcementRoutes);
+
+
+
+
+app.use('/api/announcements', announcementRoutes);
+app.use('/api', logsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -125,31 +248,12 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 // Start server with automatic migration
-// const startServer = async () => {
-//     try {
-//         // Run database migration
-//         console.log('🔄 Checking database...');
-//         await runMigration();
-        
-//         // Start Express server
-//         app.listen(PORT, () => {
-//             console.log('='.repeat(50));
-//             console.log(`✅ Server running on port ${PORT}`);
-//             console.log(`🌐 API URL: http://localhost:${PORT}/api`);
-//             console.log(`🗄️  Database: ${process.env.DB_NAME}`);
-//             console.log('='.repeat(50));
-//         });
-//     } catch (error) {
-//         console.error('❌ Failed to start server:', error);
-//         process.exit(1);
-//     }
-// };
-
-
-
-// Start server WITHOUT automatic migration
 const startServer = async () => {
     try {
+        // Run database migration
+        console.log('🔄 Checking database...');
+        await runMigration();
+        
         // Start Express server
         app.listen(PORT, () => {
             console.log('='.repeat(50));
@@ -164,7 +268,85 @@ const startServer = async () => {
     }
 };
 
+
+
+// // Start server WITHOUT automatic migration
+// const startServer = async () => {
+//     try {
+//         // Start Express server
+//         app.listen(PORT, () => {
+//             console.log('='.repeat(50));
+//             console.log(`✅ Server running on port ${PORT}`);
+//             console.log(`🌐 API URL: http://localhost:${PORT}/api`);
+//             console.log(`🗄️  Database: ${process.env.DB_NAME}`);
+//             console.log('='.repeat(50));
+//         });
+//     } catch (error) {
+//         console.error('❌ Failed to start server:', error);
+//         process.exit(1);
+//     }
+// };
+
 startServer();
 
 
 
+
+// import express from 'express';
+// import mysql from 'mysql2/promise';
+// import dotenv from 'dotenv';
+
+// dotenv.config();
+
+// const app = express();
+// const PORT = process.env.PORT || 5000;
+
+// // Create database connection pool
+// const pool = mysql.createPool({
+//   host: process.env.BIO_DB_HOST,
+//   port: process.env.BIO_DB_PORT,
+//   user: process.env.BIO_DB_USERNAME,
+//   password: process.env.BIO_DB_PASSWORD,
+//   database: process.env.BIO_DB_DATABASE
+// });
+
+// // 🟢 Route 1: Get all table names
+// app.get('/tables', async (req, res) => {
+//   try {
+//     const [rows] = await pool.query('SHOW TABLES');
+//     const key = Object.keys(rows[0])[0];
+//     const tables = rows.map(r => r[key]);
+//     res.json({ tables });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Failed to fetch table list' });
+//   }
+// });
+
+// // 🟢 Route 2: Get table structure (columns info)
+// app.get('/tables/:tableName/describe', async (req, res) => {
+//   const { tableName } = req.params;
+//   try {
+//     const [columns] = await pool.query(`DESCRIBE \`${tableName}\``);
+//     res.json({ table: tableName, columns });
+//   } catch (err) {
+//     console.error('Error fetching table info:', err);
+//     res.status(500).json({ error: `Failed to fetch info for table ${tableName}` });
+//   }
+// });
+
+// // 🟢 Route 3: Get all data from a table
+// app.get('/tables/:tableName/data', async (req, res) => {
+//   const { tableName } = req.params;
+//   try {
+//     const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+//     res.json({ table: tableName, count: rows.length, data: rows });
+//   } catch (err) {
+//     console.error('Error fetching table data:', err);
+//     res.status(500).json({ error: `Failed to fetch data for table ${tableName}` });
+//   }
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`✅ Server running on port ${PORT}`);
+// });

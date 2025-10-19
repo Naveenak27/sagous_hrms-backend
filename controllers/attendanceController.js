@@ -1,8 +1,146 @@
-import biometricPool from '../config/biometricDb.js';
 import pool from '../config/db.js';
+import biometricPool from '../config/biometricDb.js';
 import moment from 'moment';
 
-// Get attendance for a specific employee - SIMPLE VERSION
+
+
+
+export const getFullEmployeeAttendanceDetails = async (req, res) => {
+    try {
+        const { start_date, end_date, employee_code } = req.query;
+        const role = req.user.role_name;
+
+        // Permission check
+        if (!['hr', 'manager', 'superadmin'].includes(role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have permission to view this data'
+            });
+        }
+
+        // Date range setup
+        const startDate = start_date || moment().startOf('month').format('YYYY-MM-DD');
+        const endDate = end_date || moment().endOf('month').format('YYYY-MM-DD');
+
+        // Step 1: Get attendance logs
+        let attendanceQuery = `
+            SELECT employee_code, id, log_date, log_time, direction, log_date_time
+            FROM attendance_logs 
+            WHERE log_date BETWEEN ? AND ?
+        `;
+        let attendanceParams = [startDate, endDate];
+
+        if (employee_code) {
+            attendanceQuery += ` AND employee_code = ?`;
+            attendanceParams.push(employee_code);
+        }
+
+        attendanceQuery += ` ORDER BY employee_code, id ASC`;
+        const [logs] = await pool.query(attendanceQuery, attendanceParams);
+
+        // Step 2: Process attendance logs
+        const groupedByEmployee = {};
+        logs.forEach(log => {
+            if (!groupedByEmployee[log.employee_code]) {
+                groupedByEmployee[log.employee_code] = [];
+            }
+            groupedByEmployee[log.employee_code].push(log);
+        });
+
+        let allProcessedData = [];
+        for (const empCode in groupedByEmployee) {
+            const empLogs = groupedByEmployee[empCode];
+            const processedLogs = processLogsSimple(empLogs);
+            allProcessedData = allProcessedData.concat(
+                processedLogs.map(log => ({
+                    ...log,
+                    employee_code: empCode
+                }))
+            );
+        }
+
+        // Step 3: Get employee codes for lookup
+        const employeeCodes = Object.keys(groupedByEmployee);
+
+        // Step 4: Fetch combined employee + user details
+        // Match attendance_logs.employee_code with users.employee_id
+        let employeeUserQuery = `
+            SELECT 
+                employees.id AS employee_row_id,
+                employees.user_id,
+                employees.mobile_number,
+                employees.role_id,
+                employees.department_id,
+                employees.reporting_manager_id,
+                employees.date_of_birth,
+                employees.date_of_joining,
+                employees.designation,
+                employees.is_active,
+                employees.created_at AS employee_created_at,
+                employees.updated_at AS employee_updated_at,
+                users.id AS user_id,
+                users.employee_id AS employee_code,
+                users.name AS employee_name,
+                users.email,
+                users.created_at AS user_created_at,
+                users.updated_at AS user_updated_at
+            FROM users
+            JOIN employees ON users.id = employees.user_id
+            LEFT JOIN departments ON employees.department_id = departments.id
+        `;
+
+        if (employeeCodes.length > 0) {
+            // Match using users.employee_id
+            employeeUserQuery += ` WHERE users.employee_id IN (?)`;
+        }
+
+        const [employeeUserData] = await pool.query(
+            employeeUserQuery, 
+            employeeCodes.length > 0 ? [employeeCodes] : []
+        );
+
+        // Step 5: Create lookup map by employee_code (users.employee_id)
+        const employeeMap = {};
+        employeeUserData.forEach(emp => {
+            employeeMap[emp.employee_code] = emp;
+        });
+
+        // Step 6: Enrich attendance data with employee+user details
+        const enrichedData = allProcessedData.map(record => {
+            const empDetails = employeeMap[record.employee_code] || {};
+            return {
+                ...record,
+                employee_row_id: empDetails.employee_row_id || null,
+                user_id: empDetails.user_id || null,
+                employee_name: empDetails.employee_name || 'Unknown',
+                email: empDetails.email || 'N/A',
+                mobile_number: empDetails.mobile_number || 'N/A',
+                designation: empDetails.designation || 'N/A',
+                department_name: empDetails.department_name || 'N/A',
+                date_of_joining: empDetails.date_of_joining || null,
+                is_active: empDetails.is_active || null,
+                role_id: empDetails.role_id || null
+            };
+        });
+
+        res.json({
+            success: true,
+            data: enrichedData,
+            count: enrichedData.length
+        });
+    } catch (error) {
+        console.error('Full attendance details error:', error);
+        res.status(500).json({
+            success: false,
+                message: 'Error fetching full attendance details',
+            error: error.message
+        });
+    }
+};
+
+
+
+// Get attendance for a specific employee
 export const getMyAttendance = async (req, res) => {
     try {
         const { start_date, end_date } = req.query;
@@ -11,9 +149,8 @@ export const getMyAttendance = async (req, res) => {
         const startDate = start_date || moment().startOf('month').format('YYYY-MM-DD');
         const endDate = end_date || moment().endOf('month').format('YYYY-MM-DD');
 
-        // Simple query: Get all punches
-        
-        const [logs] = await pool.query(
+        // Query from biometric DB
+        const [logs] = await biometricPool.query(
             `SELECT id, log_date, log_time, direction, log_date_time
              FROM attendance_logs 
              WHERE employee_code = ? 
@@ -22,13 +159,23 @@ export const getMyAttendance = async (req, res) => {
             [employeeCode, startDate, endDate]
         );
 
-        // Process logs simply
         const processedData = processLogsSimple(logs);
+
+        // Include ALL data from processedData (including pairs)
+        const simplifiedData = processedData.map(log => ({
+            employee_code: employeeCode,
+            date: log.date,
+            total_hours: log.total_hours,
+            first_in: log.first_in,
+            last_out: log.last_out,
+            pairs: log.pairs,  // Include pairs for punch details
+            punch_count: log.punch_count
+        }));
 
         res.json({
             success: true,
-            data: processedData,
-            employee_code: employeeCode
+            data: simplifiedData,
+            count: simplifiedData.length
         });
     } catch (error) {
         console.error('Attendance error:', error);
@@ -40,7 +187,200 @@ export const getMyAttendance = async (req, res) => {
     }
 };
 
-// Get all attendance - SIMPLE VERSION
+
+
+
+export const updateAttendanceHours = async (req, res) => {
+    try {
+        const { employee_code, date, new_hours, reason, is_od } = req.body;  // Add is_od flag
+        const role = req.user.role_name;
+        const modified_by = req.user.id;
+
+        // Check permission
+        if (!['hr', 'manager', 'superadmin'].includes(role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have permission to edit attendance'
+            });
+        }
+
+        // Validation
+        if (!employee_code || !date || new_hours === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: 'Employee code, date, and new hours are required'
+            });
+        }
+
+        if (new_hours < 0 || new_hours > 24) {
+            return res.status(400).json({
+                success: false,
+                message: 'Hours must be between 0 and 24'
+            });
+        }
+
+        // Get current attendance record
+        const [currentRecords] = await pool.query(
+            `SELECT employee_code, log_date, 
+                    SUM(CASE WHEN direction = 0 THEN 1 ELSE 0 END) as total_hours
+             FROM attendance_logs 
+             WHERE employee_code = ? AND log_date = ?
+             GROUP BY employee_code, log_date`,
+            [employee_code, date]
+        );
+
+        if (currentRecords.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Attendance record not found'
+            });
+        }
+
+        const old_hours = currentRecords[0].total_hours;
+        
+        // Calculate final hours based on whether it's OD or manual edit
+        let final_hours;
+        if (is_od) {
+            // For OD, ADD the hours to existing hours
+            final_hours = parseFloat(old_hours) + parseFloat(new_hours);
+        } else {
+            // For manual edit, REPLACE with new hours
+            final_hours = new_hours;
+        }
+
+        // Check if record already exists in edited table
+        const [existingEdit] = await pool.query(
+            `SELECT * FROM attendance_edited 
+             WHERE employee_code = ? AND date = ?`,
+            [employee_code, date]
+        );
+
+        if (existingEdit.length > 0) {
+            // Update existing edited record
+            await pool.query(
+                `UPDATE attendance_edited 
+                 SET old_hours = ?, 
+                     new_hours = ?, 
+                     reason = ?,
+                     modified_by = ?,
+                     modified_at = NOW()
+                 WHERE employee_code = ? AND date = ?`,
+                [old_hours, final_hours, reason || null, modified_by, employee_code, date]
+            );
+        } else {
+            // Insert new edited record
+            await pool.query(
+                `INSERT INTO attendance_edited 
+                 (employee_code, date, old_hours, new_hours, reason, modified_by, modified_at)
+                 VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+                [employee_code, date, old_hours, final_hours, reason || null, modified_by]
+            );
+        }
+
+        res.json({
+            success: true,
+            message: is_od ? 'Over Duty hours added successfully' : 'Attendance hours updated successfully',
+            data: {
+                employee_code,
+                date,
+                old_hours,
+                new_hours: final_hours,
+                od_hours_added: is_od ? new_hours : null
+            }
+        });
+    } catch (error) {
+        console.error('Update attendance error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating attendance',
+            error: error.message
+        });
+    }
+};
+
+
+// Get all attendance
+//controller with alll punch count
+
+// export const getAllAttendance = async (req, res) => {
+//     try {
+//         const { start_date, end_date, employee_code } = req.query;
+//         const role = req.user.role_name;
+
+//         if (!['hr', 'manager', 'superadmin'].includes(role)) {
+//             return res.status(403).json({
+//                 success: false,
+//                 message: 'You do not have permission to view all attendance'
+//             });
+//         }
+
+//         const startDate = start_date || moment().startOf('month').format('YYYY-MM-DD');
+//         const endDate = end_date || moment().endOf('month').format('YYYY-MM-DD');
+
+//         let query = `SELECT employee_code, id, log_date, log_time, direction, log_date_time
+//                      FROM attendance_logs 
+//                      WHERE log_date BETWEEN ? AND ?`;
+//         let params = [startDate, endDate];
+
+//         if (employee_code) {
+//             query += ` AND employee_code = ?`;
+//             params.push(employee_code);
+//         }
+
+//         query += ` ORDER BY employee_code, id ASC`;
+
+//         const [logs] = await pool.query(query, params);
+
+//         // Group by employee
+//         const groupedByEmployee = {};
+//         logs.forEach(log => {
+//             if (!groupedByEmployee[log.employee_code]) {
+//                 groupedByEmployee[log.employee_code] = [];
+//             }
+//             groupedByEmployee[log.employee_code].push(log);
+//         });
+
+//         // Process each employee
+//         let allProcessedData = [];
+//         for (const empCode in groupedByEmployee) {
+//             const empLogs = groupedByEmployee[empCode];
+//             const processedLogs = processLogsSimple(empLogs);
+//             allProcessedData = allProcessedData.concat(
+//                 processedLogs.map(log => ({
+//                     ...log,
+//                     employee_code: empCode
+//                 }))
+//             );
+//         }
+
+//         // Enrich with employee details
+//         const employeeCodes = Object.keys(groupedByEmployee);
+//         const employeeDetails = await getEmployeeDetails(employeeCodes);
+
+//         const enrichedData = allProcessedData.map(record => ({
+//             ...record,
+//             employee_name: employeeDetails[record.employee_code]?.name || 'Unknown',
+//             designation: employeeDetails[record.employee_code]?.designation || 'N/A',
+//             department: employeeDetails[record.employee_code]?.department_name || 'N/A'
+//         }));
+
+//         res.json({
+//             success: true,
+//             data: enrichedData,
+//             count: enrichedData.length
+//         });
+//     } catch (error) {
+//         console.error('Attendance error:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error fetching attendance',
+//             error: error.message
+//         });
+//     }
+// };
+
+
+//without punch 
 export const getAllAttendance = async (req, res) => {
     try {
         const { start_date, end_date, employee_code } = req.query;
@@ -70,6 +410,26 @@ export const getAllAttendance = async (req, res) => {
 
         const [logs] = await pool.query(query, params);
 
+        // Get edited records
+        let editQuery = `SELECT employee_code, date, new_hours, reason, modified_by, modified_at
+                         FROM attendance_edited 
+                         WHERE date BETWEEN ? AND ?`;
+        let editParams = [startDate, endDate];
+
+        if (employee_code) {
+            editQuery += ` AND employee_code = ?`;
+            editParams.push(employee_code);
+        }
+
+        const [editedRecords] = await pool.query(editQuery, editParams);
+
+        // Create a map for edited records
+        const editedMap = {};
+        editedRecords.forEach(record => {
+            const key = `${record.employee_code}_${moment(record.date).format('YYYY-MM-DD')}`;
+            editedMap[key] = record;
+        });
+
         // Group by employee
         const groupedByEmployee = {};
         logs.forEach(log => {
@@ -84,29 +444,29 @@ export const getAllAttendance = async (req, res) => {
         for (const empCode in groupedByEmployee) {
             const empLogs = groupedByEmployee[empCode];
             const processedLogs = processLogsSimple(empLogs);
+            
             allProcessedData = allProcessedData.concat(
-                processedLogs.map(log => ({
-                    ...log,
-                    employee_code: empCode
-                }))
+                processedLogs.map(log => {
+                    const key = `${empCode}_${log.date}`;
+                    const edited = editedMap[key];
+                    
+                    return {
+                        employee_code: empCode,
+                        date: log.date,
+                        total_hours: edited ? edited.new_hours : log.total_hours,
+                        original_hours: edited ? log.total_hours : null,
+                        is_edited: !!edited,
+                        edit_reason: edited ? edited.reason : null,
+                        modified_at: edited ? edited.modified_at : null
+                    };
+                })
             );
         }
 
-        // Enrich with employee details
-        const employeeCodes = Object.keys(groupedByEmployee);
-        const employeeDetails = await getEmployeeDetails(employeeCodes);
-
-        const enrichedData = allProcessedData.map(record => ({
-            ...record,
-            employee_name: employeeDetails[record.employee_code]?.name || 'Unknown',
-            designation: employeeDetails[record.employee_code]?.designation || 'N/A',
-            department: employeeDetails[record.employee_code]?.department_name || 'N/A'
-        }));
-
         res.json({
             success: true,
-            data: enrichedData,
-            count: enrichedData.length
+            data: allProcessedData,
+            count: allProcessedData.length
         });
     } catch (error) {
         console.error('Attendance error:', error);
@@ -118,7 +478,8 @@ export const getAllAttendance = async (req, res) => {
     }
 };
 
-// Get attendance summary
+
+// Get attendance summary - CORRECTED to use pool only
 export const getAttendanceSummary = async (req, res) => {
     try {
         const { date } = req.query;
@@ -132,12 +493,16 @@ export const getAttendanceSummary = async (req, res) => {
             });
         }
 
+        // Query main DB for total employees
+        const [[totalEmployees]] = await pool.query(
+            'SELECT COUNT(*) as total FROM employees WHERE is_active = TRUE'
+        );
+
+        // Query BIOMETRIC DB for attendance data
         const [
-            [totalEmployees],
             [presentEmployees],
             [lateArrivals]
         ] = await Promise.all([
-            pool.query('SELECT COUNT(*) as total FROM employees WHERE is_active = TRUE'),
             biometricPool.query(
                 `SELECT COUNT(DISTINCT employee_code) as present 
                  FROM attendance_logs 
@@ -154,7 +519,7 @@ export const getAttendanceSummary = async (req, res) => {
             )
         ]);
 
-        const total = totalEmployees[0].total;
+        const total = totalEmployees.total;
         const present = presentEmployees[0].present;
         const absent = total - present;
         const late = lateArrivals[0].late;
@@ -180,13 +545,11 @@ export const getAttendanceSummary = async (req, res) => {
     }
 };
 
-// SIMPLE LOGIC: Process logs by date - First IN, First OUT only
 
-// CORRECTED: Process logs by date - Handle duplicate IN/OUT properly
+// Process logs by date - Handle duplicate IN/OUT properly
 function processLogsSimple(logs) {
     const groupedByDate = {};
 
-    // Group all logs by date
     logs.forEach(log => {
         const date = moment(log.log_date).format('YYYY-MM-DD');
         
@@ -205,31 +568,24 @@ function processLogsSimple(logs) {
         });
     });
 
-    // Process each date
     const result = [];
     for (const date in groupedByDate) {
         const dayData = groupedByDate[date];
         
-        // Sort by ID (original order from database)
         dayData.allPunches.sort((a, b) => a.id - b.id);
 
-        // CORRECTED LOGIC: Filter consecutive duplicates
+        // Filter consecutive duplicates
         const cleanedPunches = [];
         let lastDirection = null;
 
         dayData.allPunches.forEach(punch => {
-            // If this punch has same direction as last one, skip it (duplicate)
             if (punch.direction === lastDirection) {
-                console.log(`Duplicate ${punch.direction} punch ignored: ${punch.time} on ${date}`);
-                return; // Skip this punch
+                return; // Skip duplicate
             }
-            
-            // Add punch and update last direction
             cleanedPunches.push(punch);
             lastDirection = punch.direction;
         });
 
-        // Now separate INs and OUTs from cleaned punches
         const allIns = [];
         const allOuts = [];
 
@@ -241,7 +597,7 @@ function processLogsSimple(logs) {
             }
         });
 
-        // Create pairs: 1st IN → 1st OUT, 2nd IN → 2nd OUT
+        // Create pairs
         const pairs = [];
         const maxPairs = Math.max(allIns.length, allOuts.length);
         
@@ -258,7 +614,6 @@ function processLogsSimple(logs) {
             });
         }
 
-        // Calculate total hours from all pairs
         let totalMinutes = 0;
         pairs.forEach(pair => {
             if (pair.duration && pair.duration > 0) {
@@ -277,23 +632,19 @@ function processLogsSimple(logs) {
         });
     }
 
-    // Sort by date descending
     result.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return result;
 }
 
-
-// SIMPLE duration calculation
+// Duration calculation
 function calculateSimpleDuration(date, inTime, outTime) {
     if (!inTime || !outTime) return null;
 
     try {
-        // Create full datetime for accurate calculation
         const inDateTime = moment(`${date} ${inTime}`, 'YYYY-MM-DD HH:mm:ss');
         const outDateTime = moment(`${date} ${outTime}`, 'YYYY-MM-DD HH:mm:ss');
 
-        // Calculate difference in minutes
         const duration = outDateTime.diff(inDateTime, 'minutes');
 
         return duration > 0 ? duration : null;
@@ -324,6 +675,7 @@ async function getEmployeeDetails(employeeCodes) {
 
     return employeeMap;
 }
+
 
 
 

@@ -18,6 +18,11 @@ export const protect = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
+        // DEBUG: Log what's in the token
+        console.log('=== Auth Middleware Debug ===');
+        console.log('Decoded token:', decoded);
+        console.log('Looking for user ID:', decoded.id);
+        
         const [users] = await pool.query(
             `SELECT u.id, u.employee_id, u.name, u.email, 
                     e.id as emp_id, e.role_id, r.role_name, e.department_id, e.reporting_manager_id
@@ -28,6 +33,10 @@ export const protect = async (req, res, next) => {
             [decoded.id]
         );
 
+        // DEBUG: Log query result
+        console.log('Query returned users:', users.length);
+        console.log('User data:', users[0]);
+
         if (users.length === 0) {
             return res.status(401).json({
                 success: false,
@@ -36,8 +45,14 @@ export const protect = async (req, res, next) => {
         }
 
         req.user = users[0];
+        
+        // DEBUG: Log final req.user
+        console.log('req.user set to:', req.user);
+        console.log('req.user.emp_id:', req.user.emp_id);
+        
         next();
     } catch (error) {
+        console.error('Auth middleware error:', error);
         return res.status(401).json({
             success: false,
             message: 'Not authorized to access this route'
