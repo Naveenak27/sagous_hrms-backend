@@ -1,45 +1,5 @@
-# Node.js dependencies
+# Node modules
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
-# Environment files
+# Environment variables
 .env
-.env.local
-.env.development
-.env.production
-.env.test
-
-# Logs
-logs/
-*.log
-debug.log
-error.log
-
-# Build output
-dist/
-build/
-coverage/
-tmp/
-cache/
-.nyc_output/
-
-# System files
-.DS_Store
-Thumbs.db
-
-# IDE / Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Local databases or temp data
-*.sqlite
-*.db
-
-# OS-specific files
-ehthumbs.db
-desktop.ini
