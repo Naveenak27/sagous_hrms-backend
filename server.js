@@ -30,12 +30,25 @@ dotenv.config();
 
 const app = express();
 
+
+// CORS Configuration
+app.use(cors({
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
 startLeaveBalanceCronJob();
 
 
 // Initialize scheduled jobs
 initializeScheduledJobs();
 console.log('🤖 Cron jobs started successfully\n');
+
+
+
 
 // Temporary route to fetch all attendance logs from BIO database
 app.get('/api/bio/attendance-logs', async (req, res) => {
@@ -133,15 +146,6 @@ app.get('/api/bio/tables', async (req, res) => {
 
 
 
-// CORS Configuration
-app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.options('*', cors());
 
 // Middleware
 app.use(express.json());
