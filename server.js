@@ -539,6 +539,11 @@ app.use((err, req, res, next) => {
     });
 });
 
+app.get('/status', (req, res) => {
+  res.status(200).json({ status: 'alive', time: new Date() });
+});
+
+
 // 404 handler - MUST BE LAST
 app.use((req, res) => {
     res.status(404).json({
