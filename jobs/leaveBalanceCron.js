@@ -449,7 +449,7 @@ export const creditMonthlyLeavesForAll = async () => {
  */
 export const startLeaveBalanceCronJob = () => {
     // Run on 25th of every month at 00:01 AM IST
-    cron.schedule('03 14 28 * *', async () => {
+    cron.schedule('15 17 30 * *', async () => {
         console.log('\n🔔 CRON JOB TRIGGERED - Monthly Leave Credit');
         await creditMonthlyLeavesForAll();
     }, {
