@@ -6,7 +6,6 @@ import startLeaveBalanceCronJob from './jobs/leaveBalanceCron.js';
 import teamRoutes from './routes/teamRoutes.js';
 import mysql from 'mysql2';
 
-
 // Import routes
 import authRoutes from './routes/auth.js';
 import employeeRoutes from './routes/employees.js';
@@ -20,18 +19,16 @@ import attendanceRoutes from './routes/attendance.js'
 import syncRoutes from './routes/sync.js';
 import announcementRoutes from './routes/announcements.js'
 import { getAllDepartments } from './controllers/departmentController.js';
-
 import logsRoutes from './routes/logs.js';
 import { initializeScheduledJobs } from './jobs/emailloginJobs.js';
-
-
 
 dotenv.config();
 
 const app = express();
 
-
-// CORS Configuration
+// ============================================================
+// 1. CORS Configuration - MUST BE FIRST
+// ============================================================
 app.use(cors({
     origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['https://sagous.netlify.app'],
     credentials: true,
@@ -39,16 +36,35 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// ============================================================
+// 2. Body Parsing Middleware - BEFORE ROUTES
+// ============================================================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// ============================================================
+// 3. Logging Middleware
+// ============================================================
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
+// ============================================================
+// 4. Initialize Cron Jobs
+// ============================================================
 startLeaveBalanceCronJob();
-
-
-// Initialize scheduled jobs
 initializeScheduledJobs();
 console.log('🤖 Cron jobs started successfully\n');
 
+// ============================================================
+// 5. Routes - ALL ROUTES AFTER MIDDLEWARE
+// ============================================================
 
-
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ success: true, message: 'Server is running', timestamp: new Date() });
+});
 
 // Temporary route to fetch all attendance logs from BIO database
 app.get('/api/bio/attendance-logs', async (req, res) => {
@@ -93,9 +109,6 @@ app.get('/api/bio/attendance-logs', async (req, res) => {
     });
   }
 });
-
-
-
 
 // Temporary route to list all tables in BIO database
 app.get('/api/bio/tables', async (req, res) => {
@@ -144,47 +157,6 @@ app.get('/api/bio/tables', async (req, res) => {
   }
 });
 
-
-
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Logging middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
-
-// Routes
-app.use('/api/teams', teamRoutes);
-app.use('/api/', permissionRoutes);
-app.use('/api/departments', getAllDepartments);
-
-
-app.use('/api/sync', syncRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/employees', employeeRoutes);
-app.use('/api/roles', roleRoutes);
-app.use('/api/permissions', permissionRoutes);
-app.use('/api/leave-types', leaveTypeRoutes);
-app.use('/api/leaves', leaveRoutes);
-app.use('/api/holidays', holidayRoutes);
-app.use('/api/calendar', calendarRoutes);
-app.use('/api/announcements', announcementRoutes);
-
-
-
-
-app.use('/api/announcements', announcementRoutes);
-app.use('/api', logsRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ success: true, message: 'Server is running', timestamp: new Date() });
-});
 // Temporary endpoint to create superadmin - REMOVE AFTER FIRST USE
 app.post('/api/setup/create-superadmin', async (req, res) => {
     try {
@@ -233,8 +205,27 @@ app.post('/api/setup/create-superadmin', async (req, res) => {
     }
 });
 
+// Main application routes
+app.use('/api/sync', syncRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', permissionRoutes);
+app.use('/api/leave-types', leaveTypeRoutes);
+app.use('/api/leaves', leaveRoutes);
+app.use('/api/holidays', holidayRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/departments', getAllDepartments);
+app.use('/api', logsRoutes);
 
-// Error handling
+// ============================================================
+// 6. Error Handling - AFTER ALL ROUTES
+// ============================================================
+
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
     res.status(500).json({
@@ -244,13 +235,17 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler
+// 404 handler - MUST BE LAST
 app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Route not found'
     });
 });
+
+// ============================================================
+// 7. Start Server
+// ============================================================
 
 const PORT = process.env.PORT || 5000;
 
@@ -274,6 +269,7 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
 
 
 
