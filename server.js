@@ -19,6 +19,7 @@ import calendarRoutes from './routes/calendar.js';
 import attendanceRoutes from './routes/attendance.js'
 import syncRoutes from './routes/sync.js';
 import announcementRoutes from './routes/announcements.js'
+import { getAllDepartments } from './controllers/departmentController.js';
 
 import logsRoutes from './routes/logs.js';
 import { initializeScheduledJobs } from './jobs/emailloginJobs.js';
@@ -155,6 +156,8 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/teams', teamRoutes);
 app.use('/api/', permissionRoutes);
+app.use('/api/departments', getAllDepartments);
+
 
 app.use('/api/sync', syncRoutes);
 app.use('/api/auth', authRoutes);

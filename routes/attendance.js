@@ -100,6 +100,7 @@ import {
 } from '../controllers/syncController.js';
 import { protect } from '../middleware/auth.js';
 import { checkPermission } from '../middleware/checkPermission.js';
+import { gettotalhoursforcalendar } from '../controllers/attendanceController.js';
 
 const router = express.Router();
 
@@ -109,6 +110,8 @@ const router = express.Router();
 
 // Get my attendance (all roles)
 router.get('/my-attendance', protect, getMyAttendance);
+router.get('/gettotalhoursforcalendar', protect, gettotalhoursforcalendar);
+
 
 
 

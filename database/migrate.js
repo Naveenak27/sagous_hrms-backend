@@ -120,6 +120,25 @@ const createTables = async (connection) => {
             INDEX idx_reporting_manager (reporting_manager_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
+                   // 8. Employee Details - NEW TABLE ADDED
+        `CREATE TABLE IF NOT EXISTS employee_details (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            employee_id INT UNIQUE NOT NULL,
+            office_email VARCHAR(100),
+            badge_number VARCHAR(50) UNIQUE,
+            emergency_contact_name VARCHAR(100),
+            emergency_contact_number VARCHAR(15),
+            blood_group VARCHAR(10),
+            permanent_address TEXT,
+            current_address TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+            INDEX idx_employee_id (employee_id),
+            INDEX idx_badge_number (badge_number)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+
         // 8. Leave Types
         `CREATE TABLE IF NOT EXISTS leave_types (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -184,7 +203,42 @@ const createTables = async (connection) => {
         //     INDEX idx_leave_type (leave_type_id)
         // ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-        `CREATE TABLE IF NOT EXISTS leave_applications (
+//         `CREATE TABLE IF NOT EXISTS leave_applications (
+//     id INT PRIMARY KEY AUTO_INCREMENT,
+//     employee_id INT NOT NULL,
+//     leave_type_id INT NOT NULL,
+//     from_date DATE NOT NULL,
+//     to_date DATE NOT NULL,
+//     number_of_days DECIMAL(5,1) NOT NULL,
+//     is_half_day BOOLEAN DEFAULT FALSE,
+//     od_start_time TIME NULL,
+//     od_end_time TIME NULL,
+//     od_hours DECIMAL(5,2) NULL,
+//     reason TEXT,
+//     status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
+//     approved_by INT,
+//     approved_at TIMESTAMP NULL,
+//     approver_comments TEXT,
+//     rejected_by INT,
+//     rejected_at TIMESTAMP NULL,
+//     rejection_reason TEXT,
+//     applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+//     FOREIGN KEY (leave_type_id) REFERENCES leave_types(id),
+//     FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL,
+//     FOREIGN KEY (rejected_by) REFERENCES employees(id) ON DELETE SET NULL,
+//     INDEX idx_employee_id (employee_id),
+//     INDEX idx_status (status),
+//     INDEX idx_dates (from_date, to_date),
+//     INDEX idx_leave_type (leave_type_id),
+//     INDEX idx_od_date (employee_id, from_date, od_start_time)
+// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+
+// 10. Leave Applications - WITH ON HOLD STATUS
+`CREATE TABLE IF NOT EXISTS leave_applications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     employee_id INT NOT NULL,
     leave_type_id INT NOT NULL,
@@ -196,13 +250,16 @@ const createTables = async (connection) => {
     od_end_time TIME NULL,
     od_hours DECIMAL(5,2) NULL,
     reason TEXT,
-    status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected', 'cancelled', 'on_hold') DEFAULT 'pending',
     approved_by INT,
     approved_at TIMESTAMP NULL,
     approver_comments TEXT,
     rejected_by INT,
     rejected_at TIMESTAMP NULL,
     rejection_reason TEXT,
+    hold_by INT,
+    hold_at TIMESTAMP NULL,
+    hold_reason TEXT,
     applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -210,12 +267,15 @@ const createTables = async (connection) => {
     FOREIGN KEY (leave_type_id) REFERENCES leave_types(id),
     FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL,
     FOREIGN KEY (rejected_by) REFERENCES employees(id) ON DELETE SET NULL,
+    FOREIGN KEY (hold_by) REFERENCES employees(id) ON DELETE SET NULL,
     INDEX idx_employee_id (employee_id),
     INDEX idx_status (status),
     INDEX idx_dates (from_date, to_date),
     INDEX idx_leave_type (leave_type_id),
-    INDEX idx_od_date (employee_id, from_date, od_start_time)
+    INDEX idx_od_date (employee_id, from_date, od_start_time),
+    INDEX idx_hold_by (hold_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
 
         // 11. Public Holidays
         `CREATE TABLE IF NOT EXISTS public_holidays (
@@ -232,6 +292,27 @@ const createTables = async (connection) => {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
         // 12. Attendance Logs (Biometric Punch Data)
+// `CREATE TABLE IF NOT EXISTS attendance_logs (
+//     id INT PRIMARY KEY AUTO_INCREMENT,
+//     employee_code VARCHAR(20) NOT NULL,
+//     log_date_time DATETIME NOT NULL,
+//     log_date DATE NOT NULL,
+//     log_time TIME NOT NULL,
+//     direction ENUM('in', 'out') NOT NULL,
+//     login_type TINYINT DEFAULT 1,
+//     download_date_time DATETIME NOT NULL,
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+//     INDEX idx_employee_code (employee_code),
+//     INDEX idx_log_date (log_date),
+//     INDEX idx_log_date_time (log_date_time),
+//     INDEX idx_direction (direction),
+//     INDEX idx_employee_date (employee_code, log_date)
+// ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+
+
+// 12. Attendance Logs (Biometric Punch Data) - UPDATED WITH ID INDEX
 `CREATE TABLE IF NOT EXISTS attendance_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     employee_code VARCHAR(20) NOT NULL,
@@ -243,12 +324,14 @@ const createTables = async (connection) => {
     download_date_time DATETIME NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_id (id),
     INDEX idx_employee_code (employee_code),
     INDEX idx_log_date (log_date),
     INDEX idx_log_date_time (log_date_time),
     INDEX idx_direction (direction),
     INDEX idx_employee_date (employee_code, log_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
 
 // 13. Attendance Edited (Audit Trail for Manual Edits)
 `CREATE TABLE IF NOT EXISTS attendance_edited (

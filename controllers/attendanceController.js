@@ -190,6 +190,60 @@ export const getMyAttendance = async (req, res) => {
 
 
 
+
+
+
+
+
+export const gettotalhoursforcalendar = async (req, res) => {
+    try {
+        const { start_date, end_date } = req.query;
+        const employeeCode = req.user.employee_id;
+
+        const startDate = start_date || moment().startOf('month').format('YYYY-MM-DD');
+        const endDate = end_date || moment().endOf('month').format('YYYY-MM-DD');
+
+        // Query from biometric DB
+        const [logs] = await biometricPool.query(
+            `SELECT id, log_date, log_time, direction, log_date_time
+             FROM attendance_logs 
+             WHERE employee_code = ? 
+             AND log_date BETWEEN ? AND ?
+             ORDER BY id ASC`,
+            [employeeCode, startDate, endDate]
+        );
+
+        const processedData = processLogsSimple(logs);
+
+        // Include ALL data from processedData (including pairs)
+        const simplifiedData = processedData.map(log => ({
+            employee_code: employeeCode,
+            date: log.date,
+            total_hours: log.total_hours,
+            first_in: log.first_in,
+            last_out: log.last_out,
+            pairs: log.pairs,  // Include pairs for punch details
+            punch_count: log.punch_count
+        }));
+
+        res.json({
+            success: true,
+            data: simplifiedData,
+            count: simplifiedData.length
+        });
+    } catch (error) {
+        console.error('Attendance error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching attendance',
+            error: error.message
+        });
+    }
+};
+
+
+
+
 export const updateAttendanceHours = async (req, res) => {
     try {
         const { employee_code, date, new_hours, reason, is_od } = req.body;  // Add is_od flag
@@ -503,7 +557,7 @@ export const getAttendanceSummary = async (req, res) => {
             [presentEmployees],
             [lateArrivals]
         ] = await Promise.all([
-            biometricPool.query(
+            pool.query(
                 `SELECT COUNT(DISTINCT employee_code) as present 
                  FROM attendance_logs 
                  WHERE log_date = ?`,
@@ -572,6 +626,7 @@ function processLogsSimple(logs) {
     for (const date in groupedByDate) {
         const dayData = groupedByDate[date];
         
+        // Sort by ID to ensure chronological order
         dayData.allPunches.sort((a, b) => a.id - b.id);
 
         // Filter consecutive duplicates
@@ -586,45 +641,68 @@ function processLogsSimple(logs) {
             lastDirection = punch.direction;
         });
 
-        const allIns = [];
-        const allOuts = [];
-
-        cleanedPunches.forEach(punch => {
-            if (punch.direction === 'in') {
-                allIns.push(punch);
-            } else if (punch.direction === 'out') {
-                allOuts.push(punch);
-            }
-        });
-
-        // Create pairs
+        // Create pairs by matching each IN with the NEXT OUT chronologically
         const pairs = [];
-        const maxPairs = Math.max(allIns.length, allOuts.length);
-        
-        for (let i = 0; i < maxPairs; i++) {
-            const inPunch = allIns[i];
-            const outPunch = allOuts[i];
-            
-            const duration = calculateSimpleDuration(date, inPunch?.time, outPunch?.time);
-            
-            pairs.push({
-                in: inPunch ? inPunch.time : null,
-                out: outPunch ? outPunch.time : null,
-                duration: duration
-            });
-        }
-
         let totalMinutes = 0;
-        pairs.forEach(pair => {
-            if (pair.duration && pair.duration > 0) {
-                totalMinutes += pair.duration;
+        let firstIn = null;
+        let lastOut = null;
+
+        for (let i = 0; i < cleanedPunches.length; i++) {
+            const currentPunch = cleanedPunches[i];
+            
+            // Track first IN
+            if (currentPunch.direction === 'in' && !firstIn) {
+                firstIn = currentPunch.time;
             }
-        });
+            
+            // Track last OUT
+            if (currentPunch.direction === 'out') {
+                lastOut = currentPunch.time;
+            }
+
+            // If current punch is IN, find the next OUT
+            if (currentPunch.direction === 'in') {
+                let matchedOut = null;
+                
+                // Search for next OUT punch after this IN
+                for (let j = i + 1; j < cleanedPunches.length; j++) {
+                    if (cleanedPunches[j].direction === 'out') {
+                        matchedOut = cleanedPunches[j];
+                        break;
+                    }
+                }
+
+                const duration = calculateSimpleDuration(date, currentPunch.time, matchedOut?.time);
+                
+                pairs.push({
+                    in: currentPunch.time,
+                    out: matchedOut ? matchedOut.time : null,
+                    duration: duration
+                });
+
+                if (duration && duration > 0) {
+                    totalMinutes += duration;
+                }
+            }
+            // If it's an OUT without preceding IN, add it as orphaned OUT
+            else if (currentPunch.direction === 'out') {
+                // Check if this OUT was already paired
+                const alreadyPaired = pairs.some(pair => pair.out === currentPunch.time);
+                
+                if (!alreadyPaired) {
+                    pairs.push({
+                        in: null,
+                        out: currentPunch.time,
+                        duration: null
+                    });
+                }
+            }
+        }
 
         result.push({
             date: date,
-            first_in: allIns[0]?.time || null,
-            last_out: allOuts[allOuts.length - 1]?.time || null,
+            first_in: firstIn,
+            last_out: lastOut,
             pairs: pairs,
             total_hours: (totalMinutes / 60).toFixed(2),
             punch_count: cleanedPunches.length,
@@ -637,7 +715,7 @@ function processLogsSimple(logs) {
     return result;
 }
 
-// Duration calculation
+// Duration calculation remains the same
 function calculateSimpleDuration(date, inTime, outTime) {
     if (!inTime || !outTime) return null;
 
@@ -653,6 +731,7 @@ function calculateSimpleDuration(date, inTime, outTime) {
         return null;
     }
 }
+
 
 // Helper: Get employee details
 async function getEmployeeDetails(employeeCodes) {

@@ -59,13 +59,14 @@ import {
     approveLeave,
     rejectLeave,
     getLeaveBalance,
-    getAllLeaves,
+    getAllLeaves, 
     getLeaveBalanceWithHistory,
     cancelLeave,
 } from '../controllers/leaveController.js';
 import { protect } from '../middleware/auth.js';
 import { checkPermission } from '../middleware/checkPermission.js';
 import { creditMonthlyLeaves } from '../controllers/leaveController.js';
+import { holdLeave } from '../controllers/leaveController.js';
 
 
 // Add this route
@@ -84,6 +85,9 @@ router.get('/my-leaves', protect, getMyLeaves);
 
 // Get leave balance (current month) - SINGLE DEFINITION WITH PROTECT
 router.get('/balance', protect, getLeaveBalance);
+
+router.put('/:id/hold', protect, holdLeave);  // ✅ CORRECT
+
 
 // Get leave balance with history
 router.get('/balance-history', protect, getLeaveBalanceWithHistory);
