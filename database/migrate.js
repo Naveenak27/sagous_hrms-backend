@@ -152,26 +152,51 @@ const createTables = async (connection) => {
             INDEX idx_leave_code (leave_code)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-        // 9. Leave Balances - FIXED WITH MONTH COLUMN
-        `CREATE TABLE IF NOT EXISTS leave_balances (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            employee_id INT NOT NULL,
-            leave_type_id INT NOT NULL,
-            year INT NOT NULL,
-            month INT NOT NULL,
-            opening_balance DECIMAL(5,1) DEFAULT 0,
-            carried_forward DECIMAL(5,1) DEFAULT 0,
-            credited DECIMAL(5,1) DEFAULT 0,
-            used DECIMAL(5,1) DEFAULT 0,
-            balance DECIMAL(5,1) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-            FOREIGN KEY (leave_type_id) REFERENCES leave_types(id),
-            UNIQUE KEY unique_employee_leave_year_month (employee_id, leave_type_id, year, month),
-            INDEX idx_employee_year_month (employee_id, year, month),
-            INDEX idx_leave_type (leave_type_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+        // // 9. Leave Balances - FIXED WITH MONTH COLUMN
+        // `CREATE TABLE IF NOT EXISTS leave_balances (
+        //     id INT PRIMARY KEY AUTO_INCREMENT,
+        //     employee_id INT NOT NULL,
+        //     leave_type_id INT NOT NULL,
+        //     year INT NOT NULL,
+        //     month INT NOT NULL,
+        //     opening_balance DECIMAL(5,1) DEFAULT 0,
+        //     carried_forward DECIMAL(5,1) DEFAULT 0,
+        //     credited DECIMAL(5,1) DEFAULT 0,
+        //     used DECIMAL(5,1) DEFAULT 0,
+        //     balance DECIMAL(5,1) DEFAULT 0,
+        //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        //     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        //     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+        //     FOREIGN KEY (leave_type_id) REFERENCES leave_types(id),
+        //     UNIQUE KEY unique_employee_leave_year_month (employee_id, leave_type_id, year, month),
+        //     INDEX idx_employee_year_month (employee_id, year, month),
+        //     INDEX idx_leave_type (leave_type_id)
+        // ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+
+
+
+        // 9. Leave Balances - FIXED WITH OPTIONAL MONTH COLUMN
+`CREATE TABLE IF NOT EXISTS leave_balances (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT NOT NULL,
+    leave_type_id INT NOT NULL,
+    year INT NOT NULL,
+    month INT DEFAULT NULL,
+    opening_balance DECIMAL(5,1) DEFAULT 0,
+    carried_forward DECIMAL(5,1) DEFAULT 0,
+    credited DECIMAL(5,1) DEFAULT 0,
+    used DECIMAL(5,1) DEFAULT 0,
+    balance DECIMAL(5,1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+    FOREIGN KEY (leave_type_id) REFERENCES leave_types(id),
+    UNIQUE KEY unique_employee_leave_year_month (employee_id, leave_type_id, year, month),
+    INDEX idx_employee_year_month (employee_id, year, month),
+    INDEX idx_leave_type (leave_type_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
 
         // 10. Leave Applications - FIXED WITH is_half_day AND cancelled STATUS
         // `CREATE TABLE IF NOT EXISTS leave_applications (

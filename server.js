@@ -33,7 +33,7 @@ const app = express();
 
 // CORS Configuration
 app.use(cors({
-    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['http://localhost:3000'],
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['https://sagous.netlify.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
