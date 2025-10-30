@@ -29,12 +29,22 @@ const app = express();
 // ============================================================
 // 1. CORS Configuration - MUST BE FIRST
 // ============================================================
-app.use(cors({
+// ============================================================
+// 1. CORS Configuration - MUST BE FIRST
+// ============================================================
+const corsOptions = {
     origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['https://sagous.netlify.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // ============================================================
 // 2. Body Parsing Middleware - BEFORE ROUTES
