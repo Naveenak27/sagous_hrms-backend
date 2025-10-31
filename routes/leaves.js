@@ -62,20 +62,24 @@ import {
     getAllLeaves, 
     getLeaveBalanceWithHistory,
     cancelLeave,
+    migrateToLeavesCycles,
 } from '../controllers/leaveController.js';
 import { protect } from '../middleware/auth.js';
 import { checkPermission } from '../middleware/checkPermission.js';
 import { creditMonthlyLeaves } from '../controllers/leaveController.js';
 import { holdLeave } from '../controllers/leaveController.js';
 
-
-// Add this route
-
 const router = express.Router();
 
 // ========== PROTECTED ROUTES - ALL NEED AUTHENTICATION ==========
+
+// Migration route (Run ONCE only)
+router.post('/migrate-cycles', migrateToLeavesCycles);
+
+// Credit monthly leaves
 router.post('/credit-monthly', protect, checkPermission('leaves', 'manage'), creditMonthlyLeaves);
 
+router.post('/test-cron', creditMonthlyLeaves);
 
 // Apply leave
 router.post('/apply', protect, applyLeave);
@@ -83,14 +87,14 @@ router.post('/apply', protect, applyLeave);
 // Get my leaves
 router.get('/my-leaves', protect, getMyLeaves);
 
-// Get leave balance (current month) - SINGLE DEFINITION WITH PROTECT
+// Get leave balance (current month)
 router.get('/balance', protect, getLeaveBalance);
-
-router.put('/:id/hold', protect, holdLeave);  // ✅ CORRECT
-
 
 // Get leave balance with history
 router.get('/balance-history', protect, getLeaveBalanceWithHistory);
+
+// Hold leave
+router.put('/:id/hold', protect, holdLeave);
 
 // Get pending leaves (for approvers)
 router.get('/pending', protect, getPendingLeaves);
@@ -106,8 +110,5 @@ router.put('/:id/reject', protect, checkPermission('leaves', 'approve'), rejectL
 
 // Cancel leave (employee can cancel their own pending leave)
 router.put('/:id/cancel', protect, cancelLeave);
-
-// NOTE: If you need a credit-monthly endpoint, create a proper controller function
-// router.post('/credit-monthly', protect, checkPermission('leaves', 'manage'), creditMonthlyLeaves);
 
 export default router;

@@ -469,6 +469,183 @@ import { creditMonthlyLeavesForAll } from '../jobs/leaveBalanceCron.js';
 //     }
 // };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// export const applyLeave = async (req, res) => {
+//     const connection = await pool.getConnection();
+//     try {
+//         await connection.beginTransaction();
+
+//         const { leave_type_id, from_date, to_date, reason, is_half_day, od_start_time, od_end_time, od_hours } = req.body;
+//         const employee_id = req.user.emp_id;
+
+//         // Get leave type to check if it's OD
+//         const [leaveType] = await connection.query(
+//             'SELECT leave_code, leave_name FROM leave_types WHERE id = ?',
+//             [leave_type_id]
+//         );
+
+//         const isOverDuty = leaveType[0]?.leave_code?.toUpperCase() === 'OD';
+
+//         // Calculate number of days
+//         const start = moment(from_date);
+//         const end = moment(to_date);
+//         let number_of_days = end.diff(start, 'days') + 1;
+
+//         if (is_half_day) {
+//             number_of_days = 0.5;
+//         } else if (isOverDuty) {
+//             number_of_days = 0;
+//         }
+
+//         // For non-OD leaves, check leave balance
+//         if (!isOverDuty) {
+//             const leaveYear = moment(from_date).year();
+//             const leaveMonth = moment(from_date).month() + 1;
+
+//             const [balance] = await connection.query(
+//                 `SELECT balance FROM leave_balances 
+//                  WHERE employee_id = ? AND leave_type_id = ? AND year = ? AND month = ?`,
+//                 [employee_id, leave_type_id, leaveYear, leaveMonth]
+//             );
+
+//             if (balance.length === 0 || balance[0].balance < number_of_days) {
+//                 await connection.rollback();
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: 'Insufficient leave balance for the selected period',
+//                     available: balance[0]?.balance || 0,
+//                     required: number_of_days
+//                 });
+//             }
+
+//             // Check for overlapping leaves
+//             const [overlapping] = await connection.query(
+//                 `SELECT * FROM leave_applications
+//                  WHERE employee_id = ? AND status IN ('pending', 'approved')
+//                  AND ((from_date BETWEEN ? AND ?) OR (to_date BETWEEN ? AND ?) 
+//                       OR (? BETWEEN from_date AND to_date) OR (? BETWEEN from_date AND to_date))`,
+//                 [employee_id, from_date, to_date, from_date, to_date, from_date, to_date]
+//             );
+
+//             if (overlapping.length > 0) {
+//                 await connection.rollback();
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: 'Leave already applied for this period'
+//                 });
+//             }
+//         }
+
+//         // Insert leave application
+//         const [result] = await connection.query(
+//             `INSERT INTO leave_applications 
+//              (employee_id, leave_type_id, from_date, to_date, number_of_days, is_half_day, 
+//               od_start_time, od_end_time, od_hours, reason, status)
+//              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+//             [employee_id, leave_type_id, from_date, to_date, number_of_days, is_half_day || false, 
+//              od_start_time || null, od_end_time || null, od_hours || null, reason]
+//         );
+
+//         await connection.commit();
+
+//         // Get employee details for email
+//         const [employeeDetails] = await connection.query(
+//             `SELECT u.name, u.employee_id, u.email, e.designation, d.department_name
+//              FROM users u
+//              JOIN employees e ON u.id = e.user_id
+//              LEFT JOIN departments d ON e.department_id = d.id
+//              WHERE e.id = ?`,
+//             [employee_id]
+//         );
+
+//         // Get HR email(s) - adjust query based on your role structure
+//         const [hrUsers] = await connection.query(
+//             `SELECT u.name, u.email
+//              FROM users u
+//              JOIN employees e ON u.id = e.user_id
+//              JOIN roles r ON e.role_id = r.id
+//              WHERE r.role_name = 'HR' AND e.is_active = TRUE`
+//         );
+
+//         // Send email to all HR users
+//         if (hrUsers.length > 0 && employeeDetails.length > 0) {
+//             const leaveData = {
+//                 leave_name: leaveType[0].leave_name,
+//                 from_date,
+//                 to_date,
+//                 number_of_days,
+//                 is_half_day: is_half_day || false,
+//                 od_start_time,
+//                 od_end_time,
+//                 od_hours,
+//                 reason
+//             };
+
+//             // Send email to each HR user
+//             for (const hr of hrUsers) {
+//                 await sendLeaveApplicationEmailToHR(
+//                     employeeDetails[0],
+//                     leaveData,
+//                     hr
+//                 );
+//             }
+//         }
+
+//         res.status(201).json({
+//             success: true,
+//             message: isOverDuty 
+//                 ? 'Over Duty application submitted successfully' 
+//                 : 'Leave application submitted successfully. Balance will be deducted upon approval.',
+//             data: { id: result.insertId }
+//         });
+//     } catch (error) {
+//         await connection.rollback();
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error applying leave',
+//             error: error.message
+//         });
+//     } finally {
+//         connection.release();
+//     }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const applyLeave = async (req, res) => {
     const connection = await pool.getConnection();
     try {
@@ -477,13 +654,15 @@ export const applyLeave = async (req, res) => {
         const { leave_type_id, from_date, to_date, reason, is_half_day, od_start_time, od_end_time, od_hours } = req.body;
         const employee_id = req.user.emp_id;
 
-        // Get leave type to check if it's OD
+        // Get leave type
         const [leaveType] = await connection.query(
             'SELECT leave_code, leave_name FROM leave_types WHERE id = ?',
             [leave_type_id]
         );
 
-        const isOverDuty = leaveType[0]?.leave_code?.toUpperCase() === 'OD';
+        const leaveCode = leaveType[0]?.leave_code?.toUpperCase();
+        const isOverDuty = leaveCode === 'OD';
+        const isLOP = leaveCode === 'LOP';
 
         // Calculate number of days
         const start = moment(from_date);
@@ -496,43 +675,69 @@ export const applyLeave = async (req, res) => {
             number_of_days = 0;
         }
 
-        // For non-OD leaves, check leave balance
-        if (!isOverDuty) {
-            const leaveYear = moment(from_date).year();
-            const leaveMonth = moment(from_date).month() + 1;
+        // ✅ ONLY CHECK BALANCE FOR NON-LOP AND NON-OD LEAVES
+        if (!isOverDuty && !isLOP) {
+            // Get balance for this cycle
+            const leaveStartDay = start.date();
+            let cycle_start;
+
+            if (leaveStartDay >= 25) {
+                cycle_start = start.clone().date(25).format('YYYY-MM-DD');
+            } else {
+                cycle_start = start.clone().subtract(1, 'month').date(25).format('YYYY-MM-DD');
+            }
 
             const [balance] = await connection.query(
-                `SELECT balance FROM leave_balances 
-                 WHERE employee_id = ? AND leave_type_id = ? AND year = ? AND month = ?`,
-                [employee_id, leave_type_id, leaveYear, leaveMonth]
+                `SELECT id, balance, cycle_start_date, cycle_end_date
+                 FROM leave_balances 
+                 WHERE employee_id = ? AND leave_type_id = ? AND cycle_start_date = ?`,
+                [employee_id, leave_type_id, cycle_start]
             );
 
-            if (balance.length === 0 || balance[0].balance < number_of_days) {
+            if (balance.length === 0) {
                 await connection.rollback();
                 return res.status(400).json({
                     success: false,
-                    message: 'Insufficient leave balance for the selected period',
-                    available: balance[0]?.balance || 0,
-                    required: number_of_days
+                    message: 'No leave balance available for this period',
+                    period: `${cycle_start} to ${moment(cycle_start).add(1, 'month').date(24).format('YYYY-MM-DD')}`
                 });
             }
 
-            // Check for overlapping leaves
-            const [overlapping] = await connection.query(
-                `SELECT * FROM leave_applications
-                 WHERE employee_id = ? AND status IN ('pending', 'approved')
-                 AND ((from_date BETWEEN ? AND ?) OR (to_date BETWEEN ? AND ?) 
-                      OR (? BETWEEN from_date AND to_date) OR (? BETWEEN from_date AND to_date))`,
-                [employee_id, from_date, to_date, from_date, to_date, from_date, to_date]
-            );
-
-            if (overlapping.length > 0) {
+            if (balance[0].balance < number_of_days) {
                 await connection.rollback();
                 return res.status(400).json({
                     success: false,
-                    message: 'Leave already applied for this period'
+                    message: 'Insufficient leave balance',
+                    available: balance[0].balance,
+                    required: number_of_days,
+                    period: `${balance[0].cycle_start_date} to ${balance[0].cycle_end_date}`
                 });
             }
+
+            // Deduct balance
+            await connection.query(
+                `UPDATE leave_balances 
+                 SET used = used + ?, balance = balance - ?
+                 WHERE cycle_start_date = ? AND employee_id = ? AND leave_type_id = ?`,
+                [number_of_days, number_of_days, cycle_start, employee_id, leave_type_id]
+            );
+        }
+
+        // Check for overlapping leaves
+        const [overlapping] = await connection.query(
+            `SELECT * FROM leave_applications
+             WHERE employee_id = ? AND status IN ('pending', 'approved')
+             AND ((from_date BETWEEN ? AND ?) OR (to_date BETWEEN ? AND ?) 
+                  OR (? BETWEEN from_date AND to_date) OR (? BETWEEN from_date AND to_date))`,
+            [employee_id, from_date, to_date, from_date, to_date, from_date, to_date]
+        );
+
+        if (overlapping.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: 'Leave already applied for this period'
+            });
         }
 
         // Insert leave application
@@ -548,7 +753,7 @@ export const applyLeave = async (req, res) => {
         await connection.commit();
 
         // Get employee details for email
-        const [employeeDetails] = await connection.query(
+        const [employeeDetails] = await pool.query(
             `SELECT u.name, u.employee_id, u.email, e.designation, d.department_name
              FROM users u
              JOIN employees e ON u.id = e.user_id
@@ -557,8 +762,8 @@ export const applyLeave = async (req, res) => {
             [employee_id]
         );
 
-        // Get HR email(s) - adjust query based on your role structure
-        const [hrUsers] = await connection.query(
+        // Get HR email(s)
+        const [hrUsers] = await pool.query(
             `SELECT u.name, u.email
              FROM users u
              JOIN employees e ON u.id = e.user_id
@@ -566,7 +771,6 @@ export const applyLeave = async (req, res) => {
              WHERE r.role_name = 'HR' AND e.is_active = TRUE`
         );
 
-        // Send email to all HR users
         if (hrUsers.length > 0 && employeeDetails.length > 0) {
             const leaveData = {
                 leave_name: leaveType[0].leave_name,
@@ -580,7 +784,6 @@ export const applyLeave = async (req, res) => {
                 reason
             };
 
-            // Send email to each HR user
             for (const hr of hrUsers) {
                 await sendLeaveApplicationEmailToHR(
                     employeeDetails[0],
@@ -594,9 +797,12 @@ export const applyLeave = async (req, res) => {
             success: true,
             message: isOverDuty 
                 ? 'Over Duty application submitted successfully' 
-                : 'Leave application submitted successfully. Balance will be deducted upon approval.',
+                : isLOP
+                ? 'Loss of Pay applied successfully'
+                : 'Leave application submitted successfully.',
             data: { id: result.insertId }
         });
+
     } catch (error) {
         await connection.rollback();
         res.status(500).json({
@@ -608,6 +814,9 @@ export const applyLeave = async (req, res) => {
         connection.release();
     }
 };
+
+
+
 
 
 
@@ -1649,38 +1858,38 @@ export const holdLeave = async (req, res) => {
     }
 };
 
-
-
-
-
 export const getLeaveBalance = async (req, res) => {
     try {
-        const currentYear = moment().year();
-        const currentMonth = moment().month() + 1;
+        const employee_id = req.user.emp_id;
+        const today = moment();
 
-        // DEBUG: Check what we're searching for
-        console.log('====== DEBUG getLeaveBalance ======');
-        console.log('req.user:', req.user);
-        console.log('req.user.emp_id:', req.user.emp_id);
-        console.log('Searching for Year:', currentYear, 'Month:', currentMonth);
+        // Get current cycle
+        const leaveStartDay = today.date();
+        let cycle_start;
+
+        if (leaveStartDay >= 25) {
+            cycle_start = today.clone().date(25).format('YYYY-MM-DD');
+        } else {
+            cycle_start = today.clone().subtract(1, 'month').date(25).format('YYYY-MM-DD');
+        }
 
         const [balances] = await pool.query(
-            `SELECT lb.*, lt.leave_name, lt.leave_code, lt.is_carry_forward
+            `SELECT lb.*, lt.leave_name, lt.leave_code, lt.is_carry_forward,
+                    lb.cycle_start_date, lb.cycle_end_date
              FROM leave_balances lb
              JOIN leave_types lt ON lb.leave_type_id = lt.id
-             WHERE lb.employee_id = ? AND lb.year = ? AND lb.month = ?
+             WHERE lb.employee_id = ? AND lb.cycle_start_date = ?
              ORDER BY lt.leave_code`,
-            [req.user.emp_id, currentYear, currentMonth]
+            [employee_id, cycle_start]
         );
-
-        console.log('Query returned:', balances.length, 'records');
-        console.log('Balances:', balances);
 
         res.json({
             success: true,
             data: balances,
-            year: currentYear,
-            month: currentMonth
+            current_cycle: {
+                start: cycle_start,
+                end: moment(cycle_start).add(1, 'month').date(24).format('YYYY-MM-DD')
+            }
         });
     } catch (error) {
         console.error('Error in getLeaveBalance:', error);
@@ -1691,6 +1900,134 @@ export const getLeaveBalance = async (req, res) => {
         });
     }
 };
+
+
+export const migrateToLeavesCycles = async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        console.log('Starting leave balance migration to 25th-cycle...');
+
+        // Get all leave_balances that don't have cycle dates yet
+        // Include NULL month values
+        const [balances] = await connection.query(
+            `SELECT id, year, month FROM leave_balances 
+             WHERE cycle_start_date IS NULL OR cycle_end_date IS NULL`
+        );
+
+        console.log(`Found ${balances.length} records to migrate`);
+
+        let updated = 0;
+        let skipped = 0;
+
+        for (const balance of balances) {
+            let cycleStart, cycleEnd;
+
+            // Handle NULL month - use current month as fallback
+            const month = balance.month || moment().month() + 1;
+            const year = balance.year;
+
+            if (!year) {
+                console.warn(`⚠️  Skipping record ${balance.id} - Missing year`);
+                skipped++;
+                continue;
+            }
+
+            // Calculate cycle dates based on month
+            if (month === 1) {
+                cycleStart = `${year}-01-25`;
+                cycleEnd = `${year}-02-24`;
+            } else if (month === 12) {
+                cycleStart = `${year}-12-25`;
+                cycleEnd = `${year + 1}-01-24`;
+            } else {
+                cycleStart = `${year}-${String(month).padStart(2, '0')}-25`;
+                cycleEnd = `${year}-${String(month + 1).padStart(2, '0')}-24`;
+            }
+
+            try {
+                await connection.query(
+                    `UPDATE leave_balances 
+                     SET cycle_start_date = ?, cycle_end_date = ? 
+                     WHERE id = ?`,
+                    [cycleStart, cycleEnd, balance.id]
+                );
+
+                updated++;
+            } catch (updateError) {
+                console.error(`Error updating record ${balance.id}:`, updateError);
+                skipped++;
+            }
+        }
+
+        await connection.commit();
+
+        console.log(`✅ Migration completed. Updated ${updated} records, Skipped ${skipped}.`);
+
+        res.json({
+            success: true,
+            message: `Migration completed successfully. Updated ${updated} records.`,
+            updated,
+            skipped,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('Migration error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Migration failed',
+            error: error.message
+        });
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
+
+// export const getLeaveBalance = async (req, res) => {
+//     try {
+//         const currentYear = moment().year();
+//         const currentMonth = moment().month() + 1;
+
+//         // DEBUG: Check what we're searching for
+//         console.log('====== DEBUG getLeaveBalance ======');
+//         console.log('req.user:', req.user);
+//         console.log('req.user.emp_id:', req.user.emp_id);
+//         console.log('Searching for Year:', currentYear, 'Month:', currentMonth);
+
+//         const [balances] = await pool.query(
+//             `SELECT lb.*, lt.leave_name, lt.leave_code, lt.is_carry_forward
+//              FROM leave_balances lb
+//              JOIN leave_types lt ON lb.leave_type_id = lt.id
+//              WHERE lb.employee_id = ? AND lb.year = ? AND lb.month = ?
+//              ORDER BY lt.leave_code`,
+//             [req.user.emp_id, currentYear, currentMonth]
+//         );
+
+//         console.log('Query returned:', balances.length, 'records');
+//         console.log('Balances:', balances);
+
+//         res.json({
+//             success: true,
+//             data: balances,
+//             year: currentYear,
+//             month: currentMonth
+//         });
+//     } catch (error) {
+//         console.error('Error in getLeaveBalance:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error fetching leave balance',
+//             error: error.message
+//         });
+//     }
+// };
 
 
 export const creditMonthlyLeaves = async (req, res) => {
