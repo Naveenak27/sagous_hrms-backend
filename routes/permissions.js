@@ -4,6 +4,8 @@ import { checkPermission } from '../middleware/checkPermission.js';
 
 const router = express.Router();
 
+
+
 // Get all permissions
 router.get('/', protect, async (req, res) => {
     try {

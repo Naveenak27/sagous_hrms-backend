@@ -83,7 +83,7 @@ const executeIndividualReports = async () => {
 
 export const initializeScheduledJobs = () => {
     // Send individual reports at 6:00 PM IST every day (Monday to Friday only)
-    cron.schedule(' 25 21 * * 1-5', executeIndividualReports, {
+    cron.schedule(' 05 13 * * 1-5', executeIndividualReports, {
         timezone: "Asia/Kolkata"
     });
 

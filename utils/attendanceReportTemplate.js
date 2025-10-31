@@ -1,11 +1,23 @@
 import moment from 'moment';
 
 
+// Function to get initials (first and last name)
+// Add the helper function at the top, before the main export
+const getInitials = (name) => {
+    const names = name.trim().split(' ').filter(n => n);
+    if (names.length === 1) {
+        return names[0].substring(0, 2).toUpperCase();
+    }
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+};
+
+
 export const getAttendanceReportHTML = ({ 
     employeeName, employeeCode, department, date,
     firstLogin, lastLogout, netTime, grossTime, breakTime,
     isEdited, editReason, sessions
 }) => {
+     const initials = getInitials(employeeName);
 return `
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -30,14 +42,13 @@ return `
     </noscript>
     <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-collapse: collapse;">
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; width: 100%; height: 100%;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-collapse: collapse; min-height: 100%;">
         <tr>
             <td align="center" style="padding: 0;">
                 
-                <!-- Main Container -->
-                <table cellpadding="0" cellspacing="0" border="0" width="680" style="background-color: #ffffff; margin: 0 auto; border-collapse: collapse;">
-                    
+                <!-- Main Container with fixed width and auto height -->
+                <table cellpadding="0" cellspacing="0" border="0" width="680" style="width: 680px; max-width: 680px; background-color: #ffffff; margin: 0 auto; border-collapse: collapse; table-layout: fixed;">
                     <!-- Top Header Section (Black background) -->
 <tr>
     <td style="background-color: #000000; padding: 30px 25px;">
@@ -47,23 +58,24 @@ return `
                 <td width="60%" valign="middle">
                     <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                         <tr>
-                            <td valign="middle" style="padding-right: 20px;">
-                                <!-- White Circle Avatar -->
-                                <!--[if mso]>
-                                <v:oval xmlns:v="urn:schemas-microsoft-com:vml" style="width:90px;height:90px;" fillcolor="#ffffff" strokecolor="#ffffff" strokeweight="0">
-                                    <v:textbox style="mso-fit-shape-to-text:true">
-                                        <center style="font-size:40px; font-weight:700; color:#000000; font-family:Arial, sans-serif; padding-top:20px;">
-                                            ${employeeName.charAt(0).toUpperCase()}
-                                        </center>
-                                    </v:textbox>
-                                </v:oval>
-                                <![endif]-->
-                                <!--[if !mso]><!-->
-                                <div align="center" style="width: 90px; height: 90px; border-radius: 50%; background-color: #ffffff; font-size: 40px; font-weight: 700; color: #000000; line-height: 90px; display: inline-block; text-align: center;">
-                                    ${employeeName.charAt(0).toUpperCase()}
-                                </div>
-                                <!--<![endif]-->
-                            </td>
+                           <td valign="middle" style="padding-right: 20px;">
+    <!-- White Circle Avatar -->
+    <!--[if mso]>
+    <v:oval xmlns:v="urn:schemas-microsoft-com:vml" style="width:90px;height:90px;" fillcolor="#ffffff" strokecolor="#ffffff" strokeweight="0">
+        <v:textbox style="mso-fit-shape-to-text:true">
+            <center style="font-size:32px; font-weight:700; color:#000000; font-family:Arial, sans-serif; padding-top:22px;">
+                ${getInitials(employeeName)}
+            </center>
+        </v:textbox>
+    </v:oval>
+    <![endif]-->
+    <!--[if !mso]><!-->
+    <div align="center" style="width: 90px; height: 90px; border-radius: 50%; background-color: #ffffff; font-size: 32px; font-weight: 700; color: #000000; line-height: 90px; display: inline-block; text-align: center;">
+        ${getInitials(employeeName)}
+    </div>
+    <!--<![endif]-->
+</td>
+
                             <td valign="middle">
                                 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                                     <tr>
@@ -101,11 +113,6 @@ return `
                                 <p style="margin: 3px 0 0 0; font-size: 7px; color: #ffffff; letter-spacing: 1px; line-height: 1; font-family: Arial, sans-serif;">WHERE SERVICE MEETS TECHNOLOGY</p>
                             </td>
                         </tr>
-                        <tr>
-                            <td align="right">
-                                <p style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; line-height: 1; font-family: Arial, sans-serif;">Daily Attendance Report</p>
-                            </td>
-                        </tr>
                     </table>
                 </td>
             </tr>
@@ -118,7 +125,7 @@ return `
     <td style="background-color: #000000; padding: 0 25px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse;">
             <tr>
-                <td style="border-top: 2px solid #00ff00; line-height: 0; font-size: 0;">&nbsp;</td>
+                <td style="border-top: 2px solid #595b59; line-height: 0; font-size: 0;">&nbsp;</td>
             </tr>
         </table>
     </td>

@@ -108,7 +108,7 @@
 //                     </div>
 //                     <div class="footer">
 //                         <p>This is an automated reminder email. Please do not reply to this message.</p>
-//                         <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                         <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                     </div>
 //                 </div>
 //             </body>
@@ -231,7 +231,7 @@
 //                     </div>
 //                     <div class="footer">
 //                         <p>This is an automated email. Please do not reply to this message.</p>
-//                         <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                         <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                     </div>
 //                 </div>
 //             </body>
@@ -334,7 +334,7 @@
 //                     </div>
 //                     <div class="footer">
 //                         <p>This is an automated email. Please do not reply to this message.</p>
-//                         <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                         <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                     </div>
 //                 </div>
 //             </body>
@@ -512,7 +512,7 @@
 //                 <div class="footer">
 //                     <p>This is an automated announcement from HR Management System.</p>
 //                     <p>Please do not reply to this email.</p>
-//                     <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                     <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                 </div>
 //             </div>
 //         </body>
@@ -599,7 +599,7 @@
 //                     </div>
 //                     <div class="footer">
 //                         <p>This is an automated email. Please do not reply to this message.</p>
-//                         <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                         <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                     </div>
 //                 </div>
 //             </body>
@@ -696,7 +696,7 @@
 //                     </div>
 //                     <div class="footer">
 //                         <p>This is an automated email. Please do not reply to this message.</p>
-//                         <p>&copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.</p>
+//                         <p>&copy; ${new Date().getFullYear()} Sagous. All rights reserved.</p>
 //                     </div>
 //                 </div>
 //             </body>
@@ -1100,7 +1100,7 @@ export const sendLeaveReminderEmailToHR = async (employeeData, leaveData, hrData
                         <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
                         <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated reminder email. Please do not reply to this message.</p>
                         <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+                            &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
                         </p>
                         
                         <!--[if gte mso 9]>
@@ -1276,7 +1276,7 @@ export const sendLeaveApplicationEmailToHR = async (employeeData, leaveData, hrD
                         <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
                         <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated email. Please do not reply to this message.</p>
                         <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+                            &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
                         </p>
                         
                         <!--[if gte mso 9]>
@@ -1408,7 +1408,7 @@ export const sendLeaveApprovalEmail = async (employeeData, leaveData, approverDa
                         <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
                         <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated email. Please do not reply to this message.</p>
                         <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+                            &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
                         </p>
                         
                         <!--[if gte mso 9]>
@@ -1555,7 +1555,7 @@ export const sendLeaveRejectionEmail = async (employeeData, leaveData, rejectorD
                         <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
                         <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated email. Please do not reply to this message.</p>
                         <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+                            &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
                         </p>
                         
                         <!--[if gte mso 9]>
@@ -1698,7 +1698,7 @@ export const sendLeaveApplicationNotification = async (approverData, employeeDat
                         <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
                         <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated email. Please do not reply to this message.</p>
                         <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+                            &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
                         </p>
                         
                         <!--[if gte mso 9]>
@@ -1780,11 +1780,126 @@ export const sendBulkAnnouncement = async ({ subject, content, recipients, prior
     return results;
 };
 
-const createAnnouncementTemplate = (content, subject, priority) => {
-    const priorityLabels = {
-        high: '🔴 HIGH PRIORITY',
-        normal: '🔵 NORMAL',
-        low: '🟢 LOW PRIORITY'
+// const createAnnouncementTemplate = (content, subject, priority) => {
+//     const priorityLabels = {
+//         high: '🔴 HIGH PRIORITY',
+//         normal: '🔵 NORMAL',
+//         low: '🟢 LOW PRIORITY'
+//     };
+
+//     return `
+//         <!DOCTYPE html>
+//         <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+//         <head>
+//             <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+//             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//             <!--[if gte mso 9]>
+//             <xml>
+//                 <o:OfficeDocumentSettings>
+//                     <o:AllowPNG/>
+//                     <o:PixelsPerInch>96</o:PixelsPerInch>
+//                 </o:OfficeDocumentSettings>
+//             </xml>
+//             <![endif]-->
+//         </head>
+//         <body style="margin: 0; padding: 0;">
+//             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; background: #ffffff;">
+                
+//                 <!-- Modern Header with Blue Gradient -->
+//                 <div style="background: #1a237e; padding: 60px 40px; text-align: center; position: relative;">
+//                     <!--[if gte mso 9]>
+//                     <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px; height:220px;">
+//                         <v:fill type="gradient" color="#0a0a0a" color2="#0d47a1" angle="135" />
+//                         <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+//                         <div style="padding: 60px 40px; text-align: center;">
+//                     <![endif]-->
+                    
+//                     <div style="width: 100px; height: 4px; background: #00d4ff; margin: 0 auto 30px;"></div>
+//                     <h1 style="color: #ffffff; margin: 0 0 12px; font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1.2;">📢 ANNOUNCEMENT</h1>
+//                     <p style="color: #00d4ff; margin: 0; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; font-weight: 600;">${priorityLabels[priority] || 'COMPANY ANNOUNCEMENT'}</p>
+                    
+//                     <!--[if gte mso 9]>
+//                         </div>
+//                         </v:textbox>
+//                     </v:rect>
+//                     <![endif]-->
+//                 </div>
+
+//                 <!-- Main Content Area -->
+//                 <div style="padding: 50px 45px; background: #ffffff;">
+                    
+//                     <h2 style="color: #0a0a0a; margin: 0 0 30px; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${subject}</h2>
+                    
+//                     <div style="height: 2px; background: #00d4ff; margin: 30px 0;"></div>
+                    
+//                     <div style="color: #1a1a1a; margin: 30px 0; line-height: 1.8; font-size: 15px; white-space: pre-wrap;">
+//                         ${content.replace(/\n/g, '<br>')}
+//                     </div>
+                    
+//                     <div style="height: 2px; background: #00d4ff; margin: 30px 0;"></div>
+                    
+//                     <!-- Date Box -->
+//                     <div style="margin: 40px 0;">
+//                         <table cellpadding="0" cellspacing="0" border="0" width="100%">
+//                             <tr>
+//                                 <td style="padding: 24px; background: #f8f8f8; border-left: 4px solid #0090ff;">
+//                                     <p style="color: #0a0a0a; margin: 0; font-size: 13px; font-weight: 600;">
+//                                         <strong>📅 Date:</strong> ${new Date().toLocaleDateString('en-GB', {
+//                                             day: '2-digit',
+//                                             month: 'long',
+//                                             year: 'numeric'
+//                                         })}
+//                                     </p>
+//                                 </td>
+//                             </tr>
+//                         </table>
+//                     </div>
+
+//                 </div>
+
+//                 <!-- Modern Footer with Blue Gradient -->
+//                 <div style="background: #1a237e; padding: 28px 40px; text-align: center;">
+//                     <!--[if gte mso 9]>
+//                     <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px; height:100px;">
+//                         <v:fill type="gradient" color="#0a0a0a" color2="#0d47a1" angle="135" />
+//                         <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+//                         <div style="padding: 28px 40px; text-align: center;">
+//                     <![endif]-->
+                    
+//                     <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
+//                     <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated announcement from HR Management System.</p>
+//                     <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">Please do not reply to this email.</p>
+//                     <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
+//                         &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
+//                     </p>
+                    
+//                     <!--[if gte mso 9]>
+//                         </div>
+//                         </v:textbox>
+//                     </v:rect>
+//                     <![endif]-->
+//                 </div>
+
+//             </div>
+//         </body>
+//         </html>
+//     `;
+// };
+
+
+
+
+export const createAnnouncementTemplate = (content, subject, priority) => {
+    const priorityColors = {
+        high: '#d32f2f',
+        normal: '#1976d2',
+        low: '#388e3c'
+    };
+
+    const priorityText = {
+        high: 'HIGH PRIORITY',
+        normal: 'NORMAL PRIORITY',
+        low: 'LOW PRIORITY'
     };
 
     return `
@@ -1801,90 +1916,170 @@ const createAnnouncementTemplate = (content, subject, priority) => {
                 </o:OfficeDocumentSettings>
             </xml>
             <![endif]-->
+            <style type="text/css">
+                body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+                table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+                img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+            </style>
         </head>
-        <body style="margin: 0; padding: 0;">
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; background: #ffffff;">
-                
-                <!-- Modern Header with Blue Gradient -->
-                <div style="background: #1a237e; padding: 60px 40px; text-align: center; position: relative;">
-                    <!--[if gte mso 9]>
-                    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px; height:220px;">
-                        <v:fill type="gradient" color="#0a0a0a" color2="#0d47a1" angle="135" />
-                        <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
-                        <div style="padding: 60px 40px; text-align: center;">
-                    <![endif]-->
-                    
-                    <div style="width: 100px; height: 4px; background: #00d4ff; margin: 0 auto 30px;"></div>
-                    <h1 style="color: #ffffff; margin: 0 0 12px; font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1.2;">📢 ANNOUNCEMENT</h1>
-                    <p style="color: #00d4ff; margin: 0; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; font-weight: 600;">${priorityLabels[priority] || 'COMPANY ANNOUNCEMENT'}</p>
-                    
-                    <!--[if gte mso 9]>
-                        </div>
-                        </v:textbox>
-                    </v:rect>
-                    <![endif]-->
-                </div>
-
-                <!-- Main Content Area -->
-                <div style="padding: 50px 45px; background: #ffffff;">
-                    
-                    <h2 style="color: #0a0a0a; margin: 0 0 30px; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${subject}</h2>
-                    
-                    <div style="height: 2px; background: #00d4ff; margin: 30px 0;"></div>
-                    
-                    <div style="color: #1a1a1a; margin: 30px 0; line-height: 1.8; font-size: 15px; white-space: pre-wrap;">
-                        ${content.replace(/\n/g, '<br>')}
-                    </div>
-                    
-                    <div style="height: 2px; background: #00d4ff; margin: 30px 0;"></div>
-                    
-                    <!-- Date Box -->
-                    <div style="margin: 40px 0;">
-                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5;">
+                <tr>
+                    <td align="center" style="padding: 30px 15px;">
+                        
+                        <!-- Main Container -->
+                        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; max-width: 600px;">
+                            
+                            <!-- Header Section -->
                             <tr>
-                                <td style="padding: 24px; background: #f8f8f8; border-left: 4px solid #0090ff;">
-                                    <p style="color: #0a0a0a; margin: 0; font-size: 13px; font-weight: 600;">
-                                        <strong>📅 Date:</strong> ${new Date().toLocaleDateString('en-GB', {
-                                            day: '2-digit',
-                                            month: 'long',
-                                            year: 'numeric'
-                                        })}
-                                    </p>
+                                <td align="center" bgcolor="#1a237e" style="background-color: #1a237e; padding: 45px 30px;">
+                                    <!--[if gte mso 9]>
+                                    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px; height:140px;">
+                                        <v:fill type="gradient" color="#1a237e" color2="#0d47a1" angle="135" />
+                                        <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+                                        <div style="padding: 45px 30px;">
+                                    <![endif]-->
+                                    
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td align="center">
+                                                <h1 style="color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 32px; font-weight: bold; margin: 0; padding: 0; line-height: 40px; letter-spacing: 1px;">COMPANY ANNOUNCEMENT</h1>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" style="padding-top: 12px;">
+                                                <table border="0" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td bgcolor="${priorityColors[priority]}" style="background-color: ${priorityColors[priority]}; padding: 6px 18px; border-radius: 3px;">
+                                                            <p style="color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; margin: 0; padding: 0; letter-spacing: 1px;">${priorityText[priority]}</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <!--[if gte mso 9]>
+                                        </div>
+                                        </v:textbox>
+                                    </v:rect>
+                                    <![endif]-->
                                 </td>
                             </tr>
+
+                            <!-- Content Section -->
+                            <tr>
+                                <td style="padding: 40px 40px 35px 40px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        
+                                        <!-- Subject -->
+                                        <tr>
+                                            <td>
+                                                <h2 style="color: #1a1a1a; font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: bold; margin: 0 0 25px 0; padding: 0; line-height: 28px;">${subject}</h2>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Top Divider -->
+                                        <tr>
+                                            <td style="padding-bottom: 25px;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td bgcolor="#e0e0e0" style="background-color: #e0e0e0; height: 1px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Content -->
+                                        <tr>
+                                            <td>
+                                                <p style="color: #4a4a4a; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 24px; margin: 0; padding: 0; white-space: pre-wrap;">${content.replace(/\n/g, '<br>')}</p>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Bottom Divider -->
+                                        <tr>
+                                            <td style="padding-top: 30px; padding-bottom: 25px;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td bgcolor="#e0e0e0" style="background-color: #e0e0e0; height: 1px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Date Box -->
+                                        <tr>
+                                            <td>
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f9f9f9" style="background-color: #f9f9f9; border-left: 3px solid #1976d2;">
+                                                    <tr>
+                                                        <td style="padding: 18px 20px;">
+                                                            <p style="color: #333333; font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: bold; margin: 0; padding: 0; line-height: 20px;">
+                                                                Date: ${new Date().toLocaleDateString('en-GB', {
+                                                                    day: '2-digit',
+                                                                    month: 'long',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Footer Section -->
+                            <tr>
+                                <td align="center" bgcolor="#1a237e" style="background-color: #1a237e; padding: 30px 30px;">
+                                    <!--[if gte mso 9]>
+                                    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px; height:110px;">
+                                        <v:fill type="gradient" color="#1a237e" color2="#0d47a1" angle="135" />
+                                        <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+                                        <div style="padding: 30px 30px;">
+                                    <![endif]-->
+                                    
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td align="center">
+                                                <p style="color: #b0bec5; font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0 0 8px 0; padding: 0; line-height: 18px;">This is an automated announcement from HR Management System</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center">
+                                                <p style="color: #b0bec5; font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0 0 15px 0; padding: 0; line-height: 18px;">Please do not reply to this email</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" style="padding-top: 15px; border-top: 1px solid #37474f;">
+                                                <p style="color: #90a4ae; font-family: Arial, Helvetica, sans-serif; font-size: 11px; margin: 0; padding: 0; line-height: 16px;">
+                                                    &copy; ${new Date().getFullYear()} Sagous. All rights reserved.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <!--[if gte mso 9]>
+                                        </div>
+                                        </v:textbox>
+                                    </v:rect>
+                                    <![endif]-->
+                                </td>
+                            </tr>
+
                         </table>
-                    </div>
-
-                </div>
-
-                <!-- Modern Footer with Blue Gradient -->
-                <div style="background: #1a237e; padding: 28px 40px; text-align: center;">
-                    <!--[if gte mso 9]>
-                    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px; height:100px;">
-                        <v:fill type="gradient" color="#0a0a0a" color2="#0d47a1" angle="135" />
-                        <v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
-                        <div style="padding: 28px 40px; text-align: center;">
-                    <![endif]-->
-                    
-                    <div style="width: 60px; height: 2px; background: #00d4ff; margin: 0 auto 16px;"></div>
-                    <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">This is an automated announcement from HR Management System.</p>
-                    <p style="color: #e0e0e0; font-size: 11px; margin: 0 0 8px; letter-spacing: 1px;">Please do not reply to this email.</p>
-                    <p style="color: #999999; font-size: 11px; margin: 0; letter-spacing: 0.5px;">
-                        &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
-                    </p>
-                    
-                    <!--[if gte mso 9]>
-                        </div>
-                        </v:textbox>
-                    </v:rect>
-                    <![endif]-->
-                </div>
-
-            </div>
+                        
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
     `;
 };
+
+
 
 // // 7. INDIVIDUAL ATTENDANCE REPORT (OUTLOOK-FRIENDLY)
 // export const sendIndividualAttendanceReport = async ({ 
